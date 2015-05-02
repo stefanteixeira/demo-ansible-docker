@@ -1,0 +1,34 @@
+---
+- hosts: demoservers
+  tasks:
+  - name: Create destination directory
+    sudo: yes
+    command: mkdir -p /home/ec2-user/mongodb-container
+
+  - name: Make destination directory writable
+    sudo: yes
+    command: chmod 777 /home/ec2-user/mongodb-container
+
+  - name: Copy Dockerfile to server
+    copy: src={{ item }} dest=/home/ec2-user/mongodb-container mode=777
+    with_items:
+      - Dockerfile
+      - mongod.conf
+
+  - name: Remove container if already running
+    sudo: yes
+    command: docker rm -f mongodb
+    ignore_errors: yes
+
+  - name: Remove previous image
+    sudo: yes
+    command: docker rmi -f mongo-img
+    ignore_errors: yes
+
+  - name: Build Docker image
+    sudo: yes
+    command: docker build -t mongo-img /home/ec2-user/mongodb-container
+
+  - name: Create Docker container
+    sudo: yes
+    command: docker run -i -d -p 0.0.0.0:27017:27017 --name mongodb -t mongo-img
