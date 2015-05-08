@@ -17,18 +17,31 @@
 
   - name: Remove container if already running
     sudo: yes
-    command: docker rm -f mongodb
+    docker:
+      name: mongodb
+      image: mongo-img
+      state: absent
     ignore_errors: yes
 
   - name: Remove previous image
     sudo: yes
-    command: docker rmi -f mongo-img
+    docker_image:
+      name: mongo-img
+      state: absent
     ignore_errors: yes
 
   - name: Build Docker image
     sudo: yes
-    command: docker build -t mongo-img /home/ec2-user/mongodb-container
+    docker_image:
+      path: /home/ec2-user/mongodb-container
+      name: mongo-img
+      state: build
 
   - name: Create Docker container
     sudo: yes
-    command: docker run -i -d -p 0.0.0.0:27017:27017 --name mongodb -t mongo-img
+    docker:
+      name: mongodb
+      image: mongo-img
+      state: started
+      ports:
+      - "0.0.0.0:27017:27017"

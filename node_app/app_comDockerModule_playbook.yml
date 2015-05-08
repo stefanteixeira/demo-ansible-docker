@@ -17,18 +17,33 @@
 
   - name: Remove container if already running
     sudo: yes
-    command: docker rm -f app
+    docker:
+      name: app
+      image: app-img
+      state: absent
     ignore_errors: yes
 
   - name: Remove previous image
     sudo: yes
-    command: docker rmi -f app-img
+    docker_image:
+      name: app-img
+      state: absent
     ignore_errors: yes
 
   - name: Build image
     sudo: yes
-    command: docker build -t app-img /home/ec2-user/app-container
+    docker_image:
+      path: /home/ec2-user/app-container
+      name: app-img
+      state: build
 
   - name: Create container
     sudo: yes
-    command: docker run -i -d -p 3000:3000 --link mongodb:mongodb --name app -t app-img
+    docker:
+      name: app
+      image: app-img
+      state: started
+      links:
+      - "mongodb:mongodb"
+      ports:
+      - "3000:3000"
